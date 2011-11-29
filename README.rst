@@ -542,7 +542,7 @@ Check which applications can be included in their `Google Data Protocol Director
 ------------------
 Google Apps OpenID
 ------------------
-This backend implements `OpenID Federated Login Service for Google Apps`_ Federated Login for Google Apps. 
+This backend implements `OpenID Federated Login Service for Google Apps`_. 
 Existing `Google OpenID`_ backend does not work because of different IdP discovery mechanism, 
 decribed at `Protocol Documentation of OpenID IDP for Google hosted domains`_ (experimental). 
 

@@ -48,6 +48,7 @@ GOOGLE_OPENID_URL = 'https://www.google.com/accounts/o8/id'
 
 EXPIRES_NAME = getattr(settings, 'SOCIAL_AUTH_EXPIRATION', 'expires')
 LOGIN_ERROR_URL = getattr(settings, 'LOGIN_ERROR_URL', settings.LOGIN_URL)
+GOOGLE_APP_DOMAIN_KEY = getattr(settings, 'GOOGLE_APP_DOMAIN_KEY', 'domain')
 
 # Backends
 class GoogleOAuthBackend(OAuthBackend):
@@ -217,6 +218,7 @@ class GoogleAppsAuth(OpenIdAuth):
     AUTH_BACKEND = GoogleAppsBackend
     ENDPOINT_URL = 'https://www.google.com/accounts/o8/site-xrds'
     OPENID_ENDPOINT_TYPE = 'http://specs.openid.net/auth/2.0/server'
+    
 
     def openid_url(self, **kwargs):
         """ Does XRD discovery and returns OpenID URL. """
@@ -230,6 +232,16 @@ class GoogleAppsAuth(OpenIdAuth):
                 if self.OPENID_ENDPOINT_TYPE in etxrd.getTypeURIs(service):
                     return etxrd.sortedURIs(service)[0]
         return LOGIN_ERROR_URL
+    
+    @property
+    def domain_name(self):
+        """ Returns domain name of the Google App. """
+        domain = self.request.session.get(GOOGLE_APP_DOMAIN_KEY, None)
+        if domain:
+            return domain
+        domain = self.data.get(GOOGLE_APP_DOMAIN_KEY, None)
+        self.request.session[GOOGLE_APP_DOMAIN_KEY] = domain 
+        return domain
 
     def auth_url(self):
         """ Returns OpenID url with extra parameters. LOGIN_ERROR_URL on case of error. """
@@ -273,7 +285,7 @@ class GoogleAppsAuth(OpenIdAuth):
             'openid.ax.type.language': 'http://axschema.org/pref/language',
             'openid.ax.type.lastname': 'http://axschema.org/namePerson/last',
             'openid.ns.oauth': 'http://specs.openid.net/extensions/oauth/1.0',
-            'openid.ext2.consumer': getattr(settings, 'GOOGLE_CONSUMER_KEY', self.domain_name),
+            'openid.ext2.consumer': getattr(settings, 'GOOGLE_CONSUMER_KEY'),
             'openid.ns.pape': 'http://specs.openid.net/extensions/pape/1.0',
             'openid.ns.ui': 'http://openid.net/srv/ax/1.0',
             'openid.ns.ext2': 'http://specs.openid.net/extensions/oauth/1.0',

@@ -30,6 +30,7 @@ credentials, some features are:
     * `Google OpenID`_
     * `Google OAuth`_
     * `Google OAuth2`_
+    * `OpenID Federated Login Service for Google Apps`_
     * `Yahoo OpenID`_
     * OpenId_ like myOpenID_
     * `Twitter OAuth`_
@@ -110,6 +111,7 @@ Configuration
         'social_auth.backends.google.GoogleOAuthBackend',
         'social_auth.backends.google.GoogleOAuth2Backend',
         'social_auth.backends.google.GoogleBackend',
+	'social_auth.backends.google.GoogleAppsBackend',
         'social_auth.backends.yahoo.YahooBackend',
         'social_auth.backends.contrib.linkedin.LinkedinBackend',
         'social_auth.backends.contrib.livejournal.LiveJournalBackend',
@@ -537,6 +539,33 @@ To enable OAuth2 support:
 
 Check which applications can be included in their `Google Data Protocol Directory`_
 
+------------------
+Google Apps OpenID
+------------------
+This backend implements `OpenID Federated Login Service for Google Apps`_ Federated Login for Google Apps. 
+Existing `Google OpenID`_ backend does not work because of different IdP discovery mechanism, 
+decribed at `Protocol Documentation of OpenID IDP for Google hosted domains`_ (experimental). 
+
+Side requested authentication should provide Google App domain name, like ``example.com``, 
+and the authentication URL should look like the following::
+
+      {% url socialauth_begin %}?domain=example.com
+
+- fill ``Consumer Key`` and ``Consumer Secret`` values::
+
+      GOOGLE_CONSUMER_KEY
+      GOOGLE_CONSUMER_SECRET
+   
+   How these values should be obtained is decribed in `Registration for Web-Based Applications`_ doc
+
+- configure the display name to be used in the "grant permissions" dialog
+  that Google will display to users in::
+
+      GOOGLE_DISPLAY_NAME = ''
+
+- configure GOOGLE_APP_DOMAIN_KEY which is 'domain' by default::
+
+      GOOGLE_APP_DOMAIN_KEY = 'domain'
 
 --------
 LinkedIn
@@ -794,3 +823,6 @@ Base work is copyrighted by:
 .. _Flickr OAuth: http://www.flickr.com/services/api/
 .. _Flickr App Garden: http://www.flickr.com/services/apps/create/
 .. _danielgtaylor: https://github.com/danielgtaylor
+.. _OpenID Federated Login Service for Google Apps: http://code.google.com/googleapps/domain/sso/openid_reference_implementation.html
+.. _Protocol Documentation of OpenID IDP for Google hosted domains: https://sites.google.com/site/oauthgoog/fedlogininterp/openiddiscovery
+.. _Registration for Web-Based Applications: http://code.google.com/apis/accounts/docs/RegistrationForWebAppsAuto.html

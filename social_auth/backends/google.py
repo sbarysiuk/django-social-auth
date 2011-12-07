@@ -216,14 +216,14 @@ class GoogleAppsBackend(SocialAuthBackend):
 class GoogleAppsAuth(OpenIdAuth):
     """ Google App Market Place OpenID authentication. """
     AUTH_BACKEND = GoogleAppsBackend
-    ENDPOINT_URL = 'https://www.google.com/accounts/o8/site-xrds'
+    XRDS_URL = 'https://www.google.com/accounts/o8/site-xrds'
     OPENID_ENDPOINT_TYPE = 'http://specs.openid.net/auth/2.0/server'
-    
+    ENDPOINT_URL = 'https://www.google.com/accounts/o8/ud'
 
     def openid_url(self, **kwargs):
         """ Does XRD discovery and returns OpenID URL. """
         kwargs['hd'] = self.domain_name
-        url = self.ENDPOINT_URL + '?' + urlencode(kwargs)
+        url = self.XRDS_URL + '?' + urlencode(kwargs)
         response = urlopen(url)
         data = response.read()
         if response.code == 200:
@@ -260,8 +260,14 @@ class GoogleAppsAuth(OpenIdAuth):
         """ 
         Calls backend's authenticate method with 'response' argument, 
         initialized by request.GET parameters from Google. """
-        kwargs.update({'response': kwargs['request'].GET, self.AUTH_BACKEND.name: True})
-        return authenticate(*args, **kwargs)
+        # Verify the OpenID response via direct request to the OP
+        params = kwargs['request'].GET.copy()
+        params["openid.mode"] = u"check_authentication"
+        response = urlopen(self.ENDPOINT_URL + '?' + urlencode(params))
+        data = response.read()
+        if data and 'is_valid:true' in data:
+            kwargs.update({'response': params, self.AUTH_BACKEND.name: True})
+            return authenticate(*args, **kwargs)
         
     @property
     def uses_redirect(self):

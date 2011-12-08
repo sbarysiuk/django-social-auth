@@ -544,7 +544,9 @@ Google Apps OpenID
 ------------------
 This backend implements `OpenID Federated Login Service for Google Apps`_. 
 Existing `Google OpenID`_ backend does not work because of different IdP discovery mechanism, 
-decribed at `Protocol Documentation of OpenID IDP for Google hosted domains`_ (experimental). 
+decribed at `Protocol Documentation of OpenID IDP for Google hosted domains`_ (experimental).
+According to the vulnerability issue decribed in `Security advisory to websites using OpenID Attribute Exchange`_ blog post, 
+the backend verifies OpenID response signature via direct request to the OP.  
 
 Side requested authentication should provide Google App domain name, like ``example.com``, 
 and the authentication URL should look like the following::
@@ -556,7 +558,7 @@ and the authentication URL should look like the following::
       GOOGLE_CONSUMER_KEY
       GOOGLE_CONSUMER_SECRET
    
-   How these values should be obtained is decribed in `Registration for Web-Based Applications`_ doc
+How these values should be obtained is decribed in `Registration for Web-Based Applications`_ doc
 
 - configure the display name to be used in the "grant permissions" dialog
   that Google will display to users in::
@@ -826,3 +828,4 @@ Base work is copyrighted by:
 .. _OpenID Federated Login Service for Google Apps: http://code.google.com/googleapps/domain/sso/openid_reference_implementation.html
 .. _Protocol Documentation of OpenID IDP for Google hosted domains: https://sites.google.com/site/oauthgoog/fedlogininterp/openiddiscovery
 .. _Registration for Web-Based Applications: http://code.google.com/apis/accounts/docs/RegistrationForWebAppsAuto.html
+.. _Security advisory to websites using OpenID Attribute Exchange: http://googlecode.blogspot.com/2011/05/security-advisory-to-websites-using.html

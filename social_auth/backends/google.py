@@ -246,9 +246,10 @@ class GoogleAppsAuth(OpenIdAuth):
     def auth_url(self):
         """ Returns OpenID url with extra parameters. LOGIN_ERROR_URL on case of error. """
         extra_params = self.auth_extra_arguments()
+        openid_url = LOGIN_ERROR_URL
         try:
             openid_url = self.openid_url()
-            if extra_params:
+            if extra_params and openid_url != LOGIN_ERROR_URL:
                 query = urlsplit(openid_url).query
                 openid_url += (query and '&' or '?') + urlencode(extra_params)
         except:
@@ -260,15 +261,20 @@ class GoogleAppsAuth(OpenIdAuth):
         """ 
         Calls backend's authenticate method with 'response' argument, 
         initialized by request.GET parameters from Google. """
-        # Verify the OpenID response via direct request to the OP
-        params = kwargs['request'].GET.copy()
-        params["openid.mode"] = u"check_authentication"
+        # Support both GET and POST methods.
+        params = {}        
+        for key, val in kwargs['request'].REQUEST.items(): 
+            params[key] = unicode(val).encode('utf-8')
+        params["openid.mode"] = 'check_authentication'
+        # Verify the OpenID response via direct request to the OP.
         response = urlopen(self.ENDPOINT_URL + '?' + urlencode(params))
         data = response.read()
         if data and 'is_valid:true' in data:
             kwargs.update({'response': params, self.AUTH_BACKEND.name: True})
             return authenticate(*args, **kwargs)
-        
+        else:
+            raise ValueError('Invalid request signature.')
+
     @property
     def uses_redirect(self):
         """ Yes, we're redirecting to Google. """

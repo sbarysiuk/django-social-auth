@@ -300,6 +300,7 @@ class GoogleAppsAuth(OpenIdAuth):
             'openid.ns.pape': 'http://specs.openid.net/extensions/pape/1.0',
             'openid.ns.ui': 'http://specs.openid.net/extensions/ui/1.0',
             'openid.ns.ext2': 'http://specs.openid.net/extensions/oauth/1.0',
+            'openid.ext2.scope': '',
             }
 
 # Backend definition

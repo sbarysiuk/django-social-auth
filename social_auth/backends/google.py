@@ -291,15 +291,14 @@ class GoogleAppsAuth(OpenIdAuth):
             'openid.realm': self.request.build_absolute_uri('/'),
             'openid.ns.ax': 'http://openid.net/srv/ax/1.0',
             'openid.ax.mode': 'fetch_request',
-            'openid.ax.required': 'firstname,lastname,language,email',
+            'openid.ax.required': 'firstname,lastname,email',
             'openid.ax.type.email': 'http://axschema.org/contact/email',
             'openid.ax.type.firstname': 'http://axschema.org/namePerson/first',
-            'openid.ax.type.language': 'http://axschema.org/pref/language',
             'openid.ax.type.lastname': 'http://axschema.org/namePerson/last',
             'openid.ns.oauth': 'http://specs.openid.net/extensions/oauth/1.0',
             'openid.ext2.consumer': getattr(settings, 'GOOGLE_CONSUMER_KEY'),
             'openid.ns.pape': 'http://specs.openid.net/extensions/pape/1.0',
-            'openid.ns.ui': 'http://openid.net/srv/ax/1.0',
+            'openid.ns.ui': 'http://specs.openid.net/extensions/ui/1.0',
             'openid.ns.ext2': 'http://specs.openid.net/extensions/oauth/1.0',
             }
 

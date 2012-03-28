@@ -136,12 +136,10 @@ class SocialAuthBackend(ModelBackend):
                         kwargs.update(pipeline(*args, **kwargs) or {})
                     except StopPipeline:
                         break
-
+        
+        user = kwargs.get('user')
         social_user = kwargs.get('social_user')
         if social_user:
-            # define user.social_user attribute to track current social
-            # account
-            user = social_user.user
             user.social_user = social_user
             return user
 

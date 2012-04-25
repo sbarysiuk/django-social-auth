@@ -72,7 +72,10 @@ def dsa_view(redirect_name=None):
                 else:
                     logger.warn('Messages framework not in place, some '+
                                 'errors have not been shown to the user.')
-                return HttpResponseRedirect(BACKEND_ERROR_REDIRECT)
+
+                url = backend_setting(backend, 'SOCIAL_AUTH_BACKEND_ERROR_URL',
+                    LOGIN_ERROR_URL)
+                return HttpResponseRedirect(url)
         return wrapper
     return dec
 

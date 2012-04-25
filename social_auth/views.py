@@ -19,7 +19,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 
 from social_auth.backends import get_backend
-from social_auth.utils import sanitize_redirect, setting
+from social_auth.utils import sanitize_redirect, setting, backend_setting
 
 
 DEFAULT_REDIRECT = setting('SOCIAL_AUTH_LOGIN_REDIRECT_URL') or \
@@ -146,13 +146,19 @@ def auth_process(request, backend):
 def complete_process(request, backend, *args, **kwargs):
     """Authentication complete process"""
     user = auth_complete(request, backend, *args, **kwargs)
+    redirect_value = request.session.get(REDIRECT_FIELD_NAME, '')
+
+    if not user and request.user.is_authenticated():
+        return HttpResponseRedirect(redirect_value)
 
     if user and getattr(user, 'is_active', True):
         login(request, user)
         # user.social_user is the used UserSocialAuth instance defined
         # in authenticate process
         social_user = user.social_user
-
+        if redirect_value:
+            request.session[REDIRECT_FIELD_NAME] = redirect_value or\
+                                                   DEFAULT_REDIRECT
         if SESSION_EXPIRATION :
             # Set session expiration date if present and not disabled by
             # setting. Use last social-auth instance for current provider,
@@ -165,12 +171,17 @@ def complete_process(request, backend, *args, **kwargs):
 
         # Remove possible redirect URL from session, if this is a new account,
         # send him to the new-users-page if defined.
-        url = NEW_USER_REDIRECT if NEW_USER_REDIRECT and \
-                                   getattr(user, 'is_new', False) else \
-              request.session.pop(REDIRECT_FIELD_NAME, '') or \
-              DEFAULT_REDIRECT
+        new_user_redirect = backend_setting(backend,
+            'SOCIAL_AUTH_NEW_USER_REDIRECT_URL')
+        if new_user_redirect and getattr(user, 'is_new', False):
+            url = new_user_redirect
+        else:
+            url = redirect_value or\
+                  backend_setting(backend,
+                      'SOCIAL_AUTH_LOGIN_REDIRECT_URL') or\
+                  DEFAULT_REDIRECT
     else:
-        url = LOGIN_ERROR_URL
+        url = backend_setting(backend, 'LOGIN_ERROR_URL', LOGIN_ERROR_URL)
     return HttpResponseRedirect(url)
 
 

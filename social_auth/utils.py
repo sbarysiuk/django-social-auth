@@ -84,6 +84,17 @@ def setting(name, default=None):
     """Return setting value for given name or default value."""
     return getattr(settings, name, default)
 
+def backend_setting(backend, name, default=None):
+    """
+    Looks for setting value following these rules:
+        1. Search for <backend_name> prefixed setting
+        2. Search for setting given by name
+        3. Return default
+    """
+    backend_name = backend.AUTH_BACKEND.name.upper().replace('-', '_')
+    return setting('%s_%s' % (backend_name, name)) or\
+           setting(name) or\
+           default
 
 if __name__ == '__main__':
     import doctest

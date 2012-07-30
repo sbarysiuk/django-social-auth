@@ -605,43 +605,64 @@ SOCIAL_AUTH_IMPORT_SOURCES = (
     'social_auth.backends.contrib',
 ) + setting('SOCIAL_AUTH_IMPORT_BACKENDS', ())
 
-def get_backends():
-    enabled = setting('SOCIAL_AUTH_ENABLED_BACKENDS')
-    if enabled:
-        enabled = defaultdict(lambda: False, ((bak, True) for bak in enabled))
-    else:
-        enabled = defaultdict(lambda: True)
 
-    backends = {}
-    for mod_name in SOCIAL_AUTH_IMPORT_SOURCES:
-        try:
-            mod = import_module(mod_name)
-        except ImportError:
-            logger.exception('Error importing %s', mod_name)
-            continue
-
-        for directory, subdir, files in walk(mod.__path__[0]):
-            for name in filter(lambda name: name.endswith('.py'), files):
-                try:
-                    name = basename(name).replace('.py', '')
-                    sub = import_module(mod_name + '.' + name)
-
-                    # register only enabled backends
-                    new = ((key, val) for key, val in sub.BACKENDS.items()
-                                if val.enabled() and enabled[key])
-                    backends.update(new)
-                except (ImportError, AttributeError):
-                    pass
-
-    if enabled[OpenIdAuth.AUTH_BACKEND.name]:
-        backends[OpenIdAuth.AUTH_BACKEND.name] = OpenIdAuth
-    return backends
+# Cache for discovered backends.
+BACKENDSCACHE = {}
 
 
-# load backends from defined modules
-BACKENDS = get_backends()
+def get_backends(force_load=False):
+    """
+    Entry point to the BACKENDS cache. If BACKENDSCACHE hasn't been
+    populated, each of the modules referenced in
+    AUTHENTICATION_BACKENDS is imported and checked for a BACKENDS
+    definition and if enabled, added to the cache.
+
+    Previously all backends were attempted to be loaded at
+    import time of this module, which meant that backends that subclass
+    bases found in this module would not have the chance to be loaded
+    by the time they were added to this module's BACKENDS dict. See:
+    https://github.com/omab/django-social-auth/issues/204
+
+    This new approach ensures that backends are allowed to subclass from
+    bases in this module and still be picked up.
+
+    A force_load boolean arg is also provided so that get_backend
+    below can retry a requested backend that may not yet be discovered.
+    """
+    if not BACKENDSCACHE or force_load:
+        for auth_backend in setting('AUTHENTICATION_BACKENDS'):
+            mod, cls_name = auth_backend.rsplit('.', 1)
+            module = import_module(mod)
+            backend = getattr(module, cls_name)
+
+            if issubclass(backend, SocialAuthBackend):
+                name = backend.name
+                backends = getattr(module, 'BACKENDS', {})
+                if name in backends and backends[name].enabled():
+                    BACKENDSCACHE[name] = backends[name]
+    return BACKENDSCACHE
 
 
 def get_backend(name, *args, **kwargs):
-    """Return auth backend instance *if* it's registered, None in other case"""
-    return BACKENDS.get(name, lambda *args, **kwargs: None)(*args, **kwargs)
+    """Returns a backend by name. Backends are stored in the BACKENDSCACHE
+    cache dict. If not found, each of the modules referenced in
+    AUTHENTICATION_BACKENDS is imported and checked for a BACKENDS
+    definition. If the named backend is found in the module's BACKENDS
+    definition, it's then stored in the cache for future access.
+    """
+    try:
+        # Cached backend which has previously been discovered.
+        return BACKENDSCACHE[name](*args, **kwargs)
+    except KeyError:
+        # Force a reload of BACKENDS to ensure a missing
+        # backend hasn't been missed.
+        get_backends(force_load=True)
+        try:
+            return BACKENDSCACHE[name](*args, **kwargs)
+        except KeyError:
+            return None
+
+
+BACKENDS = {
+    'openid': OpenIdAuth
+}

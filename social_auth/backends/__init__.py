@@ -172,7 +172,7 @@ class SocialAuthBackend(ModelBackend):
         try:
             return User.objects.get(pk=user_id)
         except User.DoesNotExist:
-            return Noneself.user_data(access_token)
+            return None
 
 class OAuthBackend(SocialAuthBackend):
     """OAuth authentication backend base class.

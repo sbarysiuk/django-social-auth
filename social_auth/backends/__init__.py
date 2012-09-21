@@ -505,7 +505,6 @@ class ConsumerBasedOAuth(BaseOAuth):
 
     def fetch_response(self, request):
         """Executes request and fetchs service response"""
-        print(request.to_url())
         response = urlopen(request.to_url())
         return '\n'.join(response.readlines())
 

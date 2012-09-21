@@ -109,7 +109,8 @@ class SocialAuthBackend(ModelBackend):
 
         if self.name == 'sugarcrm':
             # concatenate user.pk to remote user id
-            uid = '%s%s' % (user.pk, uid)
+            #uid = '%s%s' % (user.pk, uid)
+            pass
 
         request = kwargs.get('request')
 
@@ -504,6 +505,7 @@ class ConsumerBasedOAuth(BaseOAuth):
 
     def fetch_response(self, request):
         """Executes request and fetchs service response"""
+        print(request.to_url())
         response = urlopen(request.to_url())
         return '\n'.join(response.readlines())
 

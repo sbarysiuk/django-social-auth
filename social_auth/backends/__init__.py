@@ -106,6 +106,11 @@ class SocialAuthBackend(ModelBackend):
         details = self.get_user_details(response)
         uid = self.get_user_id(details, response)
         user = kwargs.get('user')
+
+        if self.name == 'sugarcrm':
+            # concatenate user.pk to remote user id
+            uid = '%s%s' % (user.pk, uid)
+
         request = kwargs.get('request')
 
         # Pipeline:
@@ -123,6 +128,7 @@ class SocialAuthBackend(ModelBackend):
             'details': details,
             'is_new': False,
         })
+
         for name in PIPELINE:
             mod_name, func_name = name.rsplit('.', 1)
             try:
@@ -136,7 +142,7 @@ class SocialAuthBackend(ModelBackend):
                         kwargs.update(pipeline(*args, **kwargs) or {})
                     except StopPipeline:
                         break
-        
+
         user = kwargs.get('user')
         social_user = kwargs.get('social_user')
         if social_user:
@@ -166,7 +172,7 @@ class SocialAuthBackend(ModelBackend):
         try:
             return User.objects.get(pk=user_id)
         except User.DoesNotExist:
-            return None
+            return Noneself.user_data(access_token)
 
 class OAuthBackend(SocialAuthBackend):
     """OAuth authentication backend base class.

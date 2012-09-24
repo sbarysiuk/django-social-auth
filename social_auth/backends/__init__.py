@@ -109,8 +109,7 @@ class SocialAuthBackend(ModelBackend):
 
         if self.name == 'sugarcrm':
             # concatenate user.pk to remote user id
-            #uid = '%s%s' % (user.pk, uid)
-            pass
+            uid = '%s-%s' % (user.pk, uid)
 
         request = kwargs.get('request')
 

@@ -56,7 +56,7 @@ class GoogleOAuthBackend(OAuthBackend):
     name = 'google-oauth'
 
     def get_user_id(self, details, response):
-        "Use google email as unique id"""
+        """"Use google email as unique id"""
         return details['email']
 
     def get_user_details(self, response):
@@ -199,14 +199,15 @@ def googleapis_email(url, params):
 
 class GoogleAppsBackend(SocialAuthBackend):
     name = 'google-apps'
-    
+
     def get_user_id(self, details, response):
         """ Returns claimed_id. """
         return details['uid']
 
     def get_user_details(self, response):
+        email = response.get('openid.ext1.value.email', None)
         details = {'uid': response['openid.claimed_id'],
-                   'email': response.get('openid.ext1.value.email', None),
+                   'email': email.lower() if email else email,
                    'first_name': response.get('openid.ext1.value.firstname', None),
                    'last_name': response.get('openid.ext1.value.lastname', None)}
         if details['email']:
